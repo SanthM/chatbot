@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Chatbot basado en PDF</title>
+    <script src="https://cdn.botpress.com/webchat/latest/botpress-webchat.js"></script>
+    <style>
+      #webchat {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chatbot basado en PDF</h1>
+    <form enctype="multipart/form-data" method="POST" id="upload-form">
+      <input type="file" name="pdf-file">
+      <button type="submit">Enviar PDF</button>
+    </form>
+    <div id="webchat"></div>
+    <script>
+      const form = document.querySelector('#upload-form');
+      const chatbot = document.querySelector('#webchat');
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const response = await fetch('/pdf-to-text', {
+          method: 'POST',
+          body: formData
+        });
+        const text = await response.text();
+        const bot = await WebChat.create({
+          host: '/',
+          botId: 'nombre-de-tu-botpress-bot',
+          showUploadButton: false,
+          enableTranscriptDownload: false,
+          enableSpeechSynthesis: false,
+          enableEmojiPicker: true,
+          embedded: true,
+          injectStyle: true,
+          convoTitle: 'Chatbot basado en PDF',
+          hideWidget: false,
+          customStylesheetUrl: '',
+          socketPath: '',
+          speechLocale: 'es-ES',
+          speechRecognition: true,
+          speechSynthesis: true,
+          ttsVolume: 1,
+          ttsRate: 1,
+          ttsPitch: 1,
+          ttsVoice: 'Google US English'
+        });
+        chatbot.appendChild(bot);
+        bot.on('ready', async () => {
+          const response = await bot.sendMessage({
+            text: text,
+            channel: 'webchat',
+            type: 'text'
+          });
+          form.style.display = 'none';
+          chatbot.style.display = 'block';
+        });
+      });
+    </script>
+  </body>
+</html>
